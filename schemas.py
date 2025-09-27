@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from models import OrderType
 
@@ -12,8 +12,7 @@ class UserCreate(BaseModel):
 class UserOut(UserCreate):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ItemCreate(BaseModel):
@@ -24,8 +23,7 @@ class ItemCreate(BaseModel):
 class ItemOut(ItemCreate):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderCreate(BaseModel):
@@ -42,8 +40,7 @@ class OrderOut(BaseModel):
     user_id: int
     price: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TradeOut(BaseModel):
@@ -53,5 +50,4 @@ class TradeOut(BaseModel):
     item_id: int
     price: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
