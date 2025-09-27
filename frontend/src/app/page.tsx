@@ -42,7 +42,7 @@ export default function Dashboard() {
                 {selectedUser && (
                     <>
                         <h2 className="text-lg font-semibold mb-4">
-                            Viewing items for <span className="font-bold">{selectedUser.name}</span>
+                            Viewing items as <span className="font-bold">{selectedUser.name}</span>
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {items.map((item) => (

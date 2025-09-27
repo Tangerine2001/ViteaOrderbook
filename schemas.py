@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from models import OrderType
+from models import OrderType, OrderKind
 
 
 class UserCreate(BaseModel):
@@ -27,7 +27,8 @@ class ItemOut(ItemCreate):
 
 
 class OrderCreate(BaseModel):
-    type: OrderType
+    side: OrderType
+    kind: OrderKind = OrderKind.Limit
     item_id: int
     user_id: int
     price: float
@@ -35,10 +36,11 @@ class OrderCreate(BaseModel):
 
 class OrderOut(BaseModel):
     id: int
-    type: OrderType
+    side: OrderType
+    kind: OrderKind
     item_id: int
     user_id: int
-    price: float
+    price: Optional[float]
 
     model_config = ConfigDict(from_attributes=True)
 

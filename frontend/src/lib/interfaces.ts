@@ -1,9 +1,3 @@
-// Enum for OrderType (same as Python Enum)
-export enum OrderType {
-  Bid = "Bid",
-  Ask = "Ask",
-}
-
 // ---- User ----
 export interface User {
   id: number;
@@ -18,13 +12,25 @@ export interface Item {
 }
 
 // ---- Order ----
+export enum OrderType {
+  Bid = "Bid",   // Buy
+  Ask = "Ask",   // Sell
+}
+
+export enum OrderKind {
+  Limit = "Limit",
+  Market = "Market",
+}
+
 export interface Order {
   id: number;
-  type: OrderType;
+  side: OrderType;       // Bid or Ask
+  kind: OrderKind;       // Limit or Market
+  price?: number | null; // Optional because Market orders may not have price
   item_id: number;
   user_id: number;
-  price: number;
 }
+
 
 // ---- Trade ----
 export interface Trade {

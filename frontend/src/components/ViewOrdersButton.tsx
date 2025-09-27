@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import React, {useEffect, useState} from "react";
+import {Button} from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -18,13 +18,13 @@ import {
     ResponsiveContainer,
     Legend,
 } from "recharts";
-import { Order, OrderType } from "@/lib/interfaces";
+import {Order, OrderType, OrderKind} from "@/lib/interfaces";
 
 interface ViewOrdersButtonProps {
     itemId: number;
 }
 
-export function ViewOrdersButton({ itemId }: ViewOrdersButtonProps) {
+export function ViewOrdersButton({itemId}: ViewOrdersButtonProps) {
     const [open, setOpen] = useState(false);
     const [orders, setOrders] = useState<Order[]>([]);
 
@@ -42,19 +42,24 @@ export function ViewOrdersButton({ itemId }: ViewOrdersButtonProps) {
         fetchOrders();
     }, [open, itemId]);
 
-    // Build counts by price
     const bidCounts: Record<number, number> = {};
     const askCounts: Record<number, number> = {};
+    let totalBids = 0;
+    let totalAsks = 0;
 
     orders.forEach((order) => {
-        if (order.type === OrderType.Bid) {
+        if (order.kind !== OrderKind.Limit) return; // ignore Market orders
+        if (order.price == null) return;
+
+        if (order.side === OrderType.Bid) {
             bidCounts[order.price] = (bidCounts[order.price] || 0) + 1;
-        } else {
+            totalBids++;
+        } else if (order.side === OrderType.Ask) {
             askCounts[order.price] = (askCounts[order.price] || 0) + 1;
+            totalAsks++;
         }
     });
 
-    // Merge into one dataset
     const uniquePrices = Array.from(
         new Set([...Object.keys(bidCounts), ...Object.keys(askCounts)])
     ).sort((a, b) => parseFloat(a) - parseFloat(b));
@@ -74,14 +79,25 @@ export function ViewOrdersButton({ itemId }: ViewOrdersButtonProps) {
                 <DialogHeader>
                     <DialogTitle>Orders</DialogTitle>
                 </DialogHeader>
+
+                <div className="flex justify-around text-sm font-medium mb-4">
+                    <span className="text-green-600">Total Bids: {totalBids}</span>
+                    <span className="text-red-600">Total Asks: {totalAsks}</span>
+                </div>
+
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={data}>
-                        <XAxis dataKey="price" label={{ value: "Price", position: "insideBottom", offset: -5 }} />
-                        <YAxis label={{ value: "Quantity", angle: -90, position: "insideLeft" }} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="bidQty" name="Bids" fill="#22c55e" />
-                        <Bar dataKey="askQty" name="Asks" fill="#ef4444" />
+                        <XAxis
+                            dataKey="price"
+                            label={{value: "Price", position: "insideBottom", offset: -5}}
+                        />
+                        <YAxis
+                            label={{value: "Quantity", angle: -90, position: "insideLeft"}}
+                        />
+                        <Tooltip/>
+                        <Legend/>
+                        <Bar dataKey="bidQty" name="Bids" fill="#22c55e"/>
+                        <Bar dataKey="askQty" name="Asks" fill="#ef4444"/>
                     </BarChart>
                 </ResponsiveContainer>
             </DialogContent>

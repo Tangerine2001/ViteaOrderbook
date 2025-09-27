@@ -29,16 +29,22 @@ class Item(Base):
 
 
 class OrderType(str, enum.Enum):
-    Bid = "Bid"
-    Ask = "Ask"
+    Bid = "Bid"   # Buy
+    Ask = "Ask"   # Sell
+
+
+class OrderKind(str, enum.Enum):
+    Limit = "Limit"
+    Market = "Market"
 
 
 class ItemOrder(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    type = Column(Enum(OrderType), nullable=False)
-    price = Column(Float, nullable=False)
+    side = Column(Enum(OrderType), nullable=False)          # Bid or Ask
+    kind = Column(Enum(OrderKind), default=OrderKind.Limit, nullable=False)  # Limit or Market
+    price = Column(Float, nullable=True)  # nullable since market orders may not need a price
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
