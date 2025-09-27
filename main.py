@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
+from starlette.middleware.cors import CORSMiddleware
 
 from database import SessionLocal, engine
 from models import *
@@ -9,6 +10,19 @@ from schemas import ItemOut, ItemCreate, OrderOut, OrderCreate, UserOut, UserCre
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",  # React dev server
+    "http://localhost",       # fallback
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # or ["*"] to allow all
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_db():
