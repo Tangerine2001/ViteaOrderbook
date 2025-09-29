@@ -53,3 +53,7 @@ class TradeOut(BaseModel):
     price: float
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DeleteOrderRequest(BaseModel):
+    order_id: int

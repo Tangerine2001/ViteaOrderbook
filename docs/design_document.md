@@ -73,17 +73,17 @@
 │ id (PK)     │       │ id (PK)     │       │ id (PK)     │
 │ name        │◄──────┤ user_id (FK)│       │ name        │
 └─────────────┘       │ item_id (FK)├──────►│ description │
-      ▲  ▲            │ type        │       └─────────────┘
-      │  │            │ price       │             ▲
+      ▲  ▲            │ side        │       └─────────────┘
+      │  │            │ kind        │             ▲
+      │  │            │ price       │             │
       │  │            └─────────────┘             │
       │  │                                        │
       │  │            ┌─────────────┐             │
-      │  └────────────┤ buyer_id(FK)│             │
-      │               │             │             │
-      └───────────────┤ seller_id(FK)             │
-                      │ Trade       │             │
-                      ├─────────────┤             │
-                      │ id (PK)     │             │
+      │  └────────────┤ Trade       │             │
+      │               ├─────────────┤             │
+      └───────────────┤ id (PK)     │             │
+                      │ buyer_id(FK)│             │
+                      │ seller_id(FK)│            │
                       │ item_id (FK)├─────────────┘
                       │ price       │
                       └─────────────┘
@@ -109,8 +109,9 @@
 
 #### ItemOrder
 - **id**: Integer, Primary Key, Auto-increment
-- **type**: Enum(OrderType), Not Null
-- **price**: Float, Not Null
+- **side**: Enum(OrderType), Not Null
+- **kind**: Enum(OrderKind), Not Null
+- **price**: Float, Nullable (for market orders)
 - **item_id**: Integer, Foreign Key (Item.id), Not Null
 - **user_id**: Integer, Foreign Key (User.id), Not Null
 - **Relationships**:

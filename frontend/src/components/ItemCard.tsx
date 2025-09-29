@@ -125,7 +125,7 @@ export function ItemCard({ item, user }: ItemCardProps) {
 
                 <div className="flex space-x-2 pt-2">
                     <CreateOrderButton itemId={item.id} user={user} onOrderCreated={handleOrderCreated} />
-                    <ViewOrdersButton itemId={item.id} />
+                    <ViewOrdersButton itemId={item.id} user={user} />
                     <ViewTradesButton itemId={item.id} />
                 </div>
             </CardContent>

@@ -6,7 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from database import SessionLocal, engine
 from models import *
-from schemas import ItemOut, ItemCreate, OrderOut, OrderCreate, UserOut, UserCreate, TradeOut
+from schemas import ItemOut, ItemCreate, OrderOut, OrderCreate, UserOut, UserCreate, TradeOut, DeleteOrderRequest
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -83,6 +83,21 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 .first()
             )
             if best_ask:
+                # Ensure buyer and seller are different
+                if order.user_id == best_ask.user_id:
+                    # Create an ItemOrder without making a trade
+                    db_order = ItemOrder(
+                        side=order.side,
+                        kind=order.kind,
+                        price=None,
+                        item_id=order.item_id,
+                        user_id=order.user_id,
+                    )
+                    db.add(db_order)
+                    db.commit()
+                    db.refresh(db_order)
+                    return db_order
+
                 trade = Trade(
                     buyer_id=order.user_id,
                     seller_id=best_ask.user_id,
@@ -114,6 +129,21 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 .first()
             )
             if best_bid:
+                # Ensure buyer and seller are different
+                if order.user_id == best_bid.user_id:
+                    # Create an ItemOrder without making a trade
+                    db_order = ItemOrder(
+                        side=order.side,
+                        kind=order.kind,
+                        price=None,
+                        item_id=order.item_id,
+                        user_id=order.user_id,
+                    )
+                    db.add(db_order)
+                    db.commit()
+                    db.refresh(db_order)
+                    return db_order
+
                 trade = Trade(
                     buyer_id=best_bid.user_id,
                     seller_id=order.user_id,
@@ -174,6 +204,18 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 .first()
             )
             if market_ask:
+                # Ensure buyer and seller are different
+                if db_order.user_id == market_ask.user_id:
+                    # Skip trade creation and keep the order
+                    return OrderOut(
+                        id=db_order.id,
+                        side=db_order.side,
+                        kind=db_order.kind,
+                        price=db_order.price,
+                        item_id=db_order.item_id,
+                        user_id=db_order.user_id,
+                    )
+
                 trade = Trade(
                     buyer_id=db_order.user_id,
                     seller_id=market_ask.user_id,
@@ -205,6 +247,18 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 .first()
             )
             if matching_ask:
+                # Ensure buyer and seller are different
+                if db_order.user_id == matching_ask.user_id:
+                    # Skip trade creation and keep the order
+                    return OrderOut(
+                        id=db_order.id,
+                        side=db_order.side,
+                        kind=db_order.kind,
+                        price=db_order.price,
+                        item_id=db_order.item_id,
+                        user_id=db_order.user_id,
+                    )
+
                 trade = Trade(
                     buyer_id=db_order.user_id,
                     seller_id=matching_ask.user_id,
@@ -236,6 +290,18 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 .first()
             )
             if market_bid:
+                # Ensure buyer and seller are different
+                if db_order.user_id == market_bid.user_id:
+                    # Skip trade creation and keep the order
+                    return OrderOut(
+                        id=db_order.id,
+                        side=db_order.side,
+                        kind=db_order.kind,
+                        price=db_order.price,
+                        item_id=db_order.item_id,
+                        user_id=db_order.user_id,
+                    )
+
                 trade = Trade(
                     buyer_id=market_bid.user_id,
                     seller_id=db_order.user_id,
@@ -267,6 +333,18 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 .first()
             )
             if matching_bid:
+                # Ensure buyer and seller are different
+                if db_order.user_id == matching_bid.user_id:
+                    # Skip trade creation and keep the order
+                    return OrderOut(
+                        id=db_order.id,
+                        side=db_order.side,
+                        kind=db_order.kind,
+                        price=db_order.price,
+                        item_id=db_order.item_id,
+                        user_id=db_order.user_id,
+                    )
+
                 trade = Trade(
                     buyer_id=matching_bid.user_id,
                     seller_id=db_order.user_id,
@@ -291,8 +369,13 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/orders/", response_model=List[OrderOut])
-def get_orders(item_id: int = Query(...), db: Session = Depends(get_db)):
-    orders = db.query(ItemOrder).filter(ItemOrder.item_id == item_id).all()
+def get_orders(item_id: int = Query(...), user_id: Optional[int] = None, db: Session = Depends(get_db)):
+    query = db.query(ItemOrder).filter(ItemOrder.item_id == item_id)
+
+    if user_id is not None:
+        query = query.filter(ItemOrder.user_id == user_id)
+
+    orders = query.all()
     return [
         OrderOut(
             id=o.id,
@@ -310,3 +393,14 @@ def get_orders(item_id: int = Query(...), db: Session = Depends(get_db)):
 @app.get("/trades/", response_model=List[TradeOut])
 def get_trades(item_id: int = Query(...),db: Session = Depends(get_db)):
     return db.query(Trade).filter(Trade.item_id == item_id).all()
+
+
+@app.post("/orders/delete/")
+def delete_order(request: DeleteOrderRequest, db: Session = Depends(get_db)):
+    order = db.query(ItemOrder).filter(ItemOrder.id == request.order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    db.delete(order)
+    db.commit()
+    return {"message": "Order deleted successfully"}
